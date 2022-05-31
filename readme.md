@@ -1,23 +1,23 @@
 ## Data structure:
 
 - data
- - 2022
-  - blok1
-   - image1
-   - image2
-   - image3
-   - ...
-  - blok2
+  - 2022
+    - blok1
+      - image1
+      - image2
+      - image3
+      - ...
+    - blok2
+    - ...
+  - 2021
+    - blok1
+    - ...
   - ...
- - 2021
-  - blok1
-  - ...
- - ...
 - resized (for resampled and renamed images)
- - 2022_blok1_1.jpg
- - 2022_blok1_2.jpg
- - ...
+  - 2022_blok1_1.jpg
+  - 2022_blok1_2.jpg
+  - ...
 - code
- - preprocess_data.py
- - train_model.py
+  - preprocess_data.py
+  - train_model.py
 - models
