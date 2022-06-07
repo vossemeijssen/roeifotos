@@ -12,6 +12,11 @@ csvfilename = os.path.join(os.getcwd(), 'club_labels.csv')
 club_labels = pd.read_csv(csvfilename)
 print(club_labels)
 
+is_laga = club_labels["club"] == "laga" # PandasArray of True and False
+is_laga_int = [int(is_laga_instance) for is_laga_instance in is_laga] # List of 0 and 1
+is_laga_one_hot = [(1, 0) if i else (0, 1) for i in is_laga] # List of (1, 0) and (0, 1)
+file_names = club_labels["imagename"]
+
 
 class Net(nn.Module):
     def __init__(self):
