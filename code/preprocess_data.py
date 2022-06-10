@@ -23,9 +23,9 @@ for year in os.listdir(datapath):
         for imagename in tqdm.tqdm(os.listdir(blokpath), desc=year + ' ' + blok):
             imagepath = os.path.join(blokpath, imagename)
             image = Image.open(imagepath)
-            new_image = image.resize((300, 200))
+            new_image = image.resize((256, 256))
             # new_image.show()
-            new_imagename = year + '' + blok + '' + str(i) + '.jpg'
+            new_imagename = year + '_' + blok + '_' + str(i) + '.jpg'
             new_imagepath = os.path.join(resizedpath, new_imagename)
             new_image.save(new_imagepath)
             csvwriter.writerow([new_imagename, year, blok])
