@@ -4,12 +4,17 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision.models as models
+from torchvision import datasets, models, transforms
+import time
+import copy
+import matplotlib.pyplot as plt
+
 
 # Variables
 # Flag for feature extracting. When False, we finetune the whole model,
 #   when True we only update the reshaped layer params
 feature_extract = True
+batch_size = 10
 
 resizedpath = os.path.join(os.getcwd(), 'resized')
 csvfilename = os.path.join(os.getcwd(), 'club_labels.csv')
@@ -41,3 +46,19 @@ set_parameter_requires_grad(resnet18, feature_extract)
 num_ftrs = resnet18.fc.in_features
 resnet18.fc = nn.Linear(num_ftrs, num_classes)
 input_size = 224
+
+
+# Data augmentation and normalization for training
+# Just normalization for validation
+data_transforms = {
+    'train': transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+    'val': transforms.Compose([
+        transforms.Resize(input_size),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+}
