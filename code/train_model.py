@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from torchvision import datasets, models, transforms
-
+import tqdm
 import time
 import copy
 import matplotlib.pyplot as plt
@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 # Flag for feature extracting. When False, we finetune the whole model,
 #   when True we only update the reshaped layer params
 feature_extract = True
-batch_size = 10
+batch_size = 8
 num_epochs = 10
 
 resizedpath = os.path.join(os.getcwd(), 'resized')
@@ -25,7 +25,7 @@ csvfilename = os.path.join(os.getcwd(), 'club_labels.csv')
 
 # Code
 club_labels = pd.read_csv(csvfilename, sep=";")
-print(club_labels)
+# print(club_labels)
 
 all_clubs = set(club_labels["club"])
 is_laga = club_labels["club"] == "laga" # PandasArray of True and False
@@ -64,7 +64,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
             running_corrects = 0
 
             # Iterate over data.
-            for inputs, labels in dataloaders[phase]:
+            for inputs, labels in tqdm.tqdm(dataloaders[phase]):
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
@@ -112,7 +112,8 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
 
 
 # Number of classes in the dataset
-num_classes = 2
+num_classes = 16
+
 # Import model
 resnet18 = models.resnet18(pretrained=True)
 set_parameter_requires_grad(resnet18, feature_extract)
@@ -137,14 +138,14 @@ data_transforms = {
     ]),
 }
 
-device = "cpu"  # 'torch.device("cuda:0" if torch.cuda.is_available() else "cpu")'
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # Waarschijnlijk "cpu"
 
 print("Initializing Datasets and Dataloaders...")
 
 # Create training and validation datasets
 image_datasets = {x: datasets.ImageFolder(os.path.join(resizedpath, x), data_transforms[x]) for x in ['train', 'val']}
 # Create training and validation dataloaders
-dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=4) for x in ['train', 'val']}
+dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True) for x in ['train', 'val']}
 
 # Send the model to CPU
 resnet18 = resnet18.to(device)
