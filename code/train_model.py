@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from torchvision import datasets, models, transforms
+
 import time
 import copy
 import matplotlib.pyplot as plt
@@ -16,6 +17,7 @@ import matplotlib.pyplot as plt
 #   when True we only update the reshaped layer params
 feature_extract = True
 batch_size = 10
+num_epochs = 10
 
 resizedpath = os.path.join(os.getcwd(), 'resized')
 csvfilename = os.path.join(os.getcwd(), 'club_labels.csv')
@@ -38,7 +40,7 @@ def set_parameter_requires_grad(model, feature_extracting):
             param.requires_grad = False
 
 
-def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_inception=False):
+def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
     since = time.time()
 
     val_acc_history = []
@@ -73,9 +75,6 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
                 # track history if only in train
                 with torch.set_grad_enabled(phase == 'train'):
                     # Get model outputs and calculate loss
-                    # Special case for inception because in training it has an auxiliary output. In train
-                    #   mode we calculate the loss by summing the final output and the auxiliary output
-                    #   but in testing we only consider the final output.
                     outputs = model(inputs)
                     loss = criterion(outputs, labels)
                     _, preds = torch.max(outputs, 1)
@@ -139,3 +138,40 @@ data_transforms = {
 }
 
 device = "cpu"  # 'torch.device("cuda:0" if torch.cuda.is_available() else "cpu")'
+
+print("Initializing Datasets and Dataloaders...")
+
+# Create training and validation datasets
+image_datasets = {x: datasets.ImageFolder(os.path.join(resizedpath, x), data_transforms[x]) for x in ['train', 'val']}
+# Create training and validation dataloaders
+dataloaders_dict = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size, shuffle=True, num_workers=4) for x in ['train', 'val']}
+
+# Send the model to CPU
+resnet18 = resnet18.to(device)
+
+# Gather the parameters to be optimized/updated in this run. If we are
+#  finetuning we will be updating all parameters. However, if we are
+#  doing feature extract method, we will only update the parameters
+#  that we have just initialized, i.e. the parameters with requires_grad
+#  is True.
+params_to_update = resnet18.parameters()
+print("Params to learn:")
+if feature_extract:
+    params_to_update = []
+    for name,param in resnet18.named_parameters():
+        if param.requires_grad == True:
+            params_to_update.append(param)
+            print("\t",name)
+else:
+    for name,param in resnet18.named_parameters():
+        if param.requires_grad == True:
+            print("\t",name)
+
+# Observe that all parameters are being optimized
+optimizer_ft = torch.optim.SGD(params_to_update, lr=0.001, momentum=0.9)
+
+# Setup the loss fxn
+criterion = nn.CrossEntropyLoss()
+
+# Train and evaluate
+model_ft, hist = train_model(resnet18, dataloaders_dict, criterion, optimizer_ft, num_epochs=num_epochs)
