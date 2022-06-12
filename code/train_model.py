@@ -10,9 +10,10 @@ import torchvision.models as models
 resizedpath = os.path.join(os.getcwd(), 'resized')
 csvfilename = os.path.join(os.getcwd(), 'club_labels.csv')
 
-club_labels = pd.read_csv(csvfilename)
+club_labels = pd.read_csv(csvfilename, sep=";")
 print(club_labels)
 
+all_clubs = set(club_labels["club"])
 is_laga = club_labels["club"] == "laga" # PandasArray of True and False
 is_laga_int = [int(is_laga_instance) for is_laga_instance in is_laga] # List of 0 and 1
 is_laga_one_hot = [(1, 0) if i else (0, 1) for i in is_laga] # List of (1, 0) and (0, 1)
