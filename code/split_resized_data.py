@@ -12,9 +12,11 @@ csv_filename = os.path.join(os.getcwd(), 'club_labels.csv')
 
 
 def move_files(destination_folder, source_folder, list_of_files):
-    for file in list_of_files:
-        source = os.path.join(source_folder, file)
-        destination = os.path.join(destination_folder, file)
+    for club, filename in list_of_files:
+        source = os.path.join(source_folder, filename)
+        destination = os.path.join(destination_folder, club, filename)
+        if not os.path.exists(os.path.dirname(destination)):
+            os.mkdir(os.path.dirname(destination))
         shutil.move(source, destination)
 
 os.makedirs(train_path, exist_ok=True)
@@ -37,7 +39,7 @@ all_unclear_images = []
 for ind, row in club_labels.iterrows():
     if row.club not in too_small_clubs and row.club != "unclear":
         imagepath = row.imagename
-        all_non_unclear_images.append(imagepath)
+        all_non_unclear_images.append((row.club, imagepath))
 
 
 random.shuffle(all_non_unclear_images)
